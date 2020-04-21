@@ -1,0 +1,9 @@
+D:\Faks\02.Semester\UI\03.Vaja\UI_3\UI_3\bin\Debug\UI_3.exe.config
+D:\Faks\02.Semester\UI\03.Vaja\UI_3\UI_3\bin\Debug\UI_3.exe
+D:\Faks\02.Semester\UI\03.Vaja\UI_3\UI_3\bin\Debug\UI_3.pdb
+D:\Faks\02.Semester\UI\03.Vaja\UI_3\UI_3\obj\Debug\UI_3.csprojAssemblyReference.cache
+D:\Faks\02.Semester\UI\03.Vaja\UI_3\UI_3\obj\Debug\UI_3.Form1.resources
+D:\Faks\02.Semester\UI\03.Vaja\UI_3\UI_3\obj\Debug\UI_3.Properties.Resources.resources
+D:\Faks\02.Semester\UI\03.Vaja\UI_3\UI_3\obj\Debug\UI_3.csproj.GenerateResource.cache
+D:\Faks\02.Semester\UI\03.Vaja\UI_3\UI_3\obj\Debug\UI_3.exe
+D:\Faks\02.Semester\UI\03.Vaja\UI_3\UI_3\obj\Debug\UI_3.pdb
