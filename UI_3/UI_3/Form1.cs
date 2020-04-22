@@ -27,6 +27,7 @@ namespace UI_3
         int maxY = 426; // velikost panel  na kateri risem
         string Znacka_znaka; // kateri znak smo vpisali
         public List<Tocka> nor_Tocke = new List<Tocka>(); // tu imamo shranjene vse tocke
+        public List<Znak> znaki = new List<Znak>();
 
         public Form1()
         {
@@ -60,12 +61,6 @@ namespace UI_3
         private void button1_Click(object sender, EventArgs e)
         {
             panel1.Invalidate(); // pocistimo panel
-            /*
-            MessageBox.Show("Zaj bom ponovno narisel!");
-            for (int i = 0; i < vektor.Count()-1; i++) {
-                g.DrawLine(pen, vektor[i], vektor[i + 1]);
-            }
-            */
         }
 
         private void panel1_MouseUp(object sender, MouseEventArgs e)
@@ -75,14 +70,21 @@ namespace UI_3
             if (poteka_ucenje) // ce poteka ucenje
             {
                 // moramo vpisati kateri znak smo narisali
-                MessageBox.Show("Tukaj bos vpisal keri znak je");
+                //MessageBox.Show("Tukaj bos vpisal keri znak je");
                 Znacka_znaka = Prompt.ShowDialog("Vpisi znacko narisanega znaka");
                 vektorizacija();
                 normalizacija();
                 MessageBox.Show("Vpisan text: " + Znacka_znaka);
+                MessageBox.Show("Stevilo v vektor2: " + vektor_2.Count());
+
             }
+            
+            znaki.Add(new Znak(Znacka_znaka, vektor_2));
             vektor.Clear();
             vektor_2.Clear();
+            /*for (int i = 0; i < znaki.Count(); i++) {
+                znaki[i].Izpis();
+            }*/
         }
 
         private void radioButton1_Click(object sender, EventArgs e)
@@ -142,15 +144,28 @@ namespace UI_3
             int st_interakcij = 0; /// koliko interakcij smo naredili
             while (st_tock > stevilo_vektorjev-2) {
                 //MessageBox.Show("Stevilo tock: " + st_tock);
+                Random rnd = new Random();
                 if (st_interakcij % 2 == 0)
                 {
                     // iz temp1 kopiramo v temp2
                     st_tock = 0;
                     for (int i = 0; i < temp1.Count() - 1; i = i + 2) {
+                        //if (st_tock == stevilo_vektorjev - 2) { break; }
                         double x = (temp1[i].X + temp1[i + 1].X) / 2; // izracunamo vmesno tocko
                         double y = (temp1[i].Y + temp1[i + 1].Y) / 2;
                         temp2.Add(new Tocka(x, y)); // si jo shranimo
                         st_tock++; // povecamo koliko tock imamo
+                    }
+                    if(st_tock < stevilo_vektorjev - 2) { 
+                        //MessageBox.Show("Premalo tock!");
+                        // dodaj nazaj par tock
+                        for(int i=st_tock; i < stevilo_vektorjev; i++)
+                        {
+                            int index = rnd.Next(0, temp1.Count());
+                            temp2.Add(temp1[index]);
+                            temp1.RemoveAt(index);
+
+                        }
                     }
                     temp1.Clear(); // pocistimo tempo1 za naslednji krog
                     st_interakcij++; // zaj je st_i%2==1
@@ -160,15 +175,29 @@ namespace UI_3
                     st_tock = 0; // damo tocke na 0
                     for (int i = 0; i < temp2.Count() - 1; i = i + 2)
                     {
+                        //if (st_tock == stevilo_vektorjev - 2) { break; }
                         double x = (temp2[i].X + temp2[i + 1].X) / 2;
                         double y = (temp2[i].Y + temp2[i + 1].Y) / 2;
                         temp1.Add(new Tocka(x, y));
                         st_tock++;
                     }
+                    if (st_tock < stevilo_vektorjev - 2)
+                    {
+                        //MessageBox.Show("Premalo tock!");
+                        // dodaj nazaj par tock
+                        for (int i = st_tock; i < stevilo_vektorjev-2; i++)
+                        {
+                            int index = rnd.Next(0, temp1.Count());
+                            temp1.Add(temp2[index]);
+                            temp2.RemoveAt(index);
+
+                        }
+                    }
                     temp2.Clear();
                     st_interakcij++; // zaj je st_i%2==0
                 }
             }
+
             vektor_2.Add(prva); // dodamo prvo tocko na prvo mesto
             if (st_interakcij % 2 == 0)
             {
@@ -198,6 +227,11 @@ namespace UI_3
                 nor_Tocke.Add(new Tocka((vektor_2[i].X / maxX), (vektor_2[i].Y / maxY)));
                 //MessageBox.Show("x: " + Tocke[i].X + " y: " + Tocke[i].Y);
             }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Sedaj bom začel z učenjem!");
         }
     }
 
@@ -233,6 +267,23 @@ namespace UI_3
             prompt.AcceptButton = confirmation;
 
             return prompt.ShowDialog() == DialogResult.OK ? textBox.Text : "";
+        }
+    }
+
+    public class Znak {
+        public string oznaka;
+        public List<Tocka> tocke_znaka = new List<Tocka>();
+        public Znak(string x, List<Tocka> y)
+        {
+            this.oznaka = x;
+            //this.tocke_znaka = y;
+            for (int i = 0; i < y.Count(); i++) {
+                this.tocke_znaka.Add(y[i]);
+            }
+        }
+
+        public void Izpis() {
+            MessageBox.Show("Oznaka znaka: " + this.oznaka + " st tock: " + this.tocke_znaka.Count());
         }
     }
 
