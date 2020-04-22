@@ -25,8 +25,8 @@ namespace UI_3
         public double dovoljena_napaka = 0.005; // napaka
         int maxX = 587; // velikost panel  na kateri risem
         int maxY = 426; // velikost panel  na kateri risem
-
-        public List<Tocka> Tocke = new List<Tocka>(); // tu imamo shranjene vse tocke
+        string Znacka_znaka; // kateri znak smo vpisali
+        public List<Tocka> nor_Tocke = new List<Tocka>(); // tu imamo shranjene vse tocke
 
         public Form1()
         {
@@ -76,8 +76,10 @@ namespace UI_3
             {
                 // moramo vpisati kateri znak smo narisali
                 MessageBox.Show("Tukaj bos vpisal keri znak je");
+                Znacka_znaka = Prompt.ShowDialog("Vpisi znacko narisanega znaka");
                 vektorizacija();
                 normalizacija();
+                MessageBox.Show("Vpisan text: " + Znacka_znaka);
             }
             vektor.Clear();
             vektor_2.Clear();
@@ -193,8 +195,8 @@ namespace UI_3
 
         private void normalizacija() {
             for (int i = 0; i < vektor_2.Count(); i++) {
-                Tocke.Add(new Tocka((vektor_2[i].X / maxX), (vektor_2[i].Y / maxY)));
-                MessageBox.Show("x: " + Tocke[i].X + " y: " + Tocke[i].Y);
+                nor_Tocke.Add(new Tocka((vektor_2[i].X / maxX), (vektor_2[i].Y / maxY)));
+                //MessageBox.Show("x: " + Tocke[i].X + " y: " + Tocke[i].Y);
             }
         }
     }
@@ -208,4 +210,30 @@ namespace UI_3
             this.Y = y;
         }
     }
+
+    public static class Prompt
+    {
+        public static string ShowDialog(string text, string caption="")
+        {
+            Form prompt = new Form()
+            {
+                Width = 400,
+                Height = 150,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = caption,
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            Label textLabel = new Label() { Left = 50, Top = 20, Text = text };
+            TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 200 };
+            Button confirmation = new Button() { Text = "Ok", Left = 250, Width = 100, Top = 49, DialogResult = DialogResult.OK };
+            confirmation.Click += (sender, e) => { prompt.Close(); };
+            prompt.Controls.Add(textBox);
+            prompt.Controls.Add(confirmation);
+            prompt.Controls.Add(textLabel);
+            prompt.AcceptButton = confirmation;
+
+            return prompt.ShowDialog() == DialogResult.OK ? textBox.Text : "";
+        }
+    }
+
 }
