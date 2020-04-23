@@ -30,6 +30,7 @@
         {
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.button2 = new System.Windows.Forms.Button();
             this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown3 = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
@@ -43,7 +44,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown4)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).BeginInit();
@@ -80,6 +80,16 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(202, 466);
             this.panel2.TabIndex = 1;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(31, 315);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(138, 50);
+            this.button2.TabIndex = 11;
+            this.button2.Text = "Zacni ucenje";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // numericUpDown4
             // 
@@ -234,16 +244,6 @@
             this.button1.Text = "Počisti";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(31, 315);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(138, 50);
-            this.button2.TabIndex = 11;
-            this.button2.Text = "Zacni ucenje";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // Form1
             // 
