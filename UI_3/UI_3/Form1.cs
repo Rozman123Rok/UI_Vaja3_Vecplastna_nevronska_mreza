@@ -21,13 +21,16 @@ namespace UI_3
         bool poteka_ucenje = true; // ce se se program uci ali ne
         public int stevilo_vektorjev = 16; // koliko vektorjev bomo uporabili
         public int stevilo_nevronov = 12; // koliko nevronov
-        public double stopnja_ucenja = 0.25; // stopnja ucenja
-        public double dovoljena_napaka = 0.005; // napaka
+        public float stopnja_ucenja = 0.25f; // stopnja ucenja
+        public float dovoljena_napaka = 0.005f; // napaka
         int maxX = 587; // velikost panel  na kateri risem
         int maxY = 426; // velikost panel  na kateri risem
         string Znacka_znaka; // kateri znak smo vpisali
         public List<Tocka> nor_Tocke = new List<Tocka>(); // tu imamo shranjene vse tocke
         public List<Znak> znaki = new List<Znak>();
+        NeuralNetwork mreza = new NeuralNetwork(new int[] { 16 * 2, 12 , 10 });
+
+        //public NeuralNetwork mreza = new NeuralNetwork(new int[] { stevilo_vektorjev * 2, stevilo_nevronov, 10 });
 
         public Form1()
         {
@@ -40,8 +43,8 @@ namespace UI_3
         {
             panel1.Invalidate(); // pocistimo 
             stara = e.Location; // si shranimo lokacijo kjer smo zaceli oz stisnili
-            double x = (double)stara.X;
-            double y = (double)stara.Y;
+            float x = (float)stara.X;
+            float y = (float)stara.Y;
             vektor.Add(new Tocka(x, y)); // dodamo v vektor
         }
 
@@ -50,8 +53,8 @@ namespace UI_3
             if (e.Button == MouseButtons.Left) // ce drzimo levi gumb na miski
             {
                 nova = e.Location; // za vsak premik dobimo novo lokavijo
-                double x = (double)nova.X;
-                double y = (double)nova.Y;
+                float x = (float)nova.X;
+                float y = (float)nova.Y;
                 vektor.Add(new Tocka(x, y)); // dodamo v vektor
                 g.DrawLine(pen, stara, nova); // narisemo crto med novo in staro
                 stara = nova; // si prepisemo staro
@@ -66,9 +69,9 @@ namespace UI_3
         private void panel1_MouseUp(object sender, MouseEventArgs e)
         {
             // ko spustimo misko
-
+            /*
             if (poteka_ucenje) // ce poteka ucenje
-            {
+            {*/
                 // moramo vpisati kateri znak smo narisali
                 //MessageBox.Show("Tukaj bos vpisal keri znak je");
                 Znacka_znaka = Prompt.ShowDialog("Vpisi znacko narisanega znaka");
@@ -77,9 +80,13 @@ namespace UI_3
                 normalizacija();
                 MessageBox.Show("Vpisan text: " + Znacka_znaka);
                 //MessageBox.Show("Stevilo v vektor2: " + vektor_2.Count());
-
+/*
             }
-
+            else {
+                Vektorizacija();
+                normalizacija();
+                //MessageBox.Show("Output: " + mreza.FeedForward(new float[] { 0, 0, 0 })[0]);
+            }*/
             znaki.Add(new Znak(Znacka_znaka, vektor_2));
             vektor.Clear();
             vektor_2.Clear();
@@ -115,14 +122,14 @@ namespace UI_3
         private void numericUpDown3_ValueChanged(object sender, EventArgs e)
         {
             //MessageBox.Show("St ucenja: " + stopnja_ucenja);
-            stopnja_ucenja = (double)numericUpDown3.Value; // pridobimo vrednost
+            stopnja_ucenja = (float)numericUpDown3.Value; // pridobimo vrednost
             //MessageBox.Show("St ucenja: " + stopnja_ucenja);
         }
 
         private void numericUpDown4_ValueChanged(object sender, EventArgs e)
         {
             //MessageBox.Show("Napaka: " + dovoljena_napaka);
-            dovoljena_napaka = (double)numericUpDown4.Value; // pridobimo vrednost
+            dovoljena_napaka = (float)numericUpDown4.Value; // pridobimo vrednost
             //MessageBox.Show("Napaka: " + dovoljena_napaka);
         }
 
@@ -152,8 +159,8 @@ namespace UI_3
                     st_tock = 0;
                     for (int i = 0; i < temp1.Count() - 1; i = i + 2) {
                         //if (st_tock == stevilo_vektorjev - 2) { break; }
-                        double x = (temp1[i].X + temp1[i + 1].X) / 2; // izracunamo vmesno tocko
-                        double y = (temp1[i].Y + temp1[i + 1].Y) / 2;
+                        float x = (temp1[i].X + temp1[i + 1].X) / 2; // izracunamo vmesno tocko
+                        float y = (temp1[i].Y + temp1[i + 1].Y) / 2;
                         temp2.Add(new Tocka(x, y)); // si jo shranimo
                         st_tock++; // povecamo koliko tock imamo
                     }
@@ -177,8 +184,8 @@ namespace UI_3
                     for (int i = 0; i < temp2.Count() - 1; i = i + 2)
                     {
                         //if (st_tock == stevilo_vektorjev - 2) { break; }
-                        double x = (temp2[i].X + temp2[i + 1].X) / 2;
-                        double y = (temp2[i].Y + temp2[i + 1].Y) / 2;
+                        float x = (temp2[i].X + temp2[i + 1].X) / 2;
+                        float y = (temp2[i].Y + temp2[i + 1].Y) / 2;
                         temp1.Add(new Tocka(x, y));
                         st_tock++;
                     }
@@ -225,17 +232,20 @@ namespace UI_3
 
         private void Vektorizacija() {
             List<Tocka> temp1 = new List<Tocka>(); // shranjene vmesne tocke
-            List<Tocka> temp2 = new List<Tocka>();
-            
+            List<Tocka> temp2 = new List<Tocka>(); // vmesne tocke
+            // si shranim prvo pa zadno tocko ker ostaneta fix
             Tocka prva = new Tocka(vektor[0].X, vektor[0].Y); // prva tocka ki ostane fix
             Tocka zadna = new Tocka(vektor[vektor.Count - 1].X, vektor[vektor.Count - 1].Y); // zadna ki prav tako ostane fixna
 
             bool na_vrsti_temp1 = true; // kdaj je vektor ena na vrsti
+            // prekopiramo vse tocke v temp1 razen prve pa zadne
             for (int i = 1; i < vektor.Count - 1; i++) { temp1.Add(vektor[i]); } /// kopiram vse tocke v vektor1
-            bool morem_b = false;
-            int stevilo_tock = temp1.Count();
-            //MessageBox.Show("St_tock: " + stevilo_tock + " st_vek: " + (stevilo_vektorjev - 2));
 
+            bool morem_b = false; // morem koncat 
+
+            int stevilo_tock = temp1.Count(); // koliko tock imamo na zacetku (to so vse -2)
+            //MessageBox.Show("St_tock: " + stevilo_tock + " st_vek: " + (stevilo_vektorjev - 2));
+            // dokler ni stevilo tock vecje kot 2xstevilo dovoljenih tock
             while (stevilo_tock > (stevilo_vektorjev-2)*2 && !morem_b) {
                 // ker moremo naredit brez prve in zadne
                 //MessageBox.Show("st_tock: " + stevilo_tock + " temp1: " + temp1.Count() + " temp2: " + temp2.Count() + "Na vrsti: " + na_vrsti_temp1);
@@ -250,8 +260,8 @@ namespace UI_3
                         }
                         else
                         {
-                            double x = (temp1[i].X + temp1[i + 1].X) / 2; // izracunamo vmesno tocko
-                            double y = (temp1[i].Y + temp1[i + 1].Y) / 2;
+                            float x = (temp1[i].X + temp1[i + 1].X) / 2; // izracunamo vmesno tocko
+                            float y = (temp1[i].Y + temp1[i + 1].Y) / 2;
                             temp2.Add(new Tocka(x, y)); // si jo shranimo
                             stevilo_tock--; // zmansamo stevilo tock
                         }
@@ -276,8 +286,8 @@ namespace UI_3
                         }
                         else
                         {
-                            double x = (temp2[i].X + temp2[i + 1].X) / 2; // izracunamo vmesno tocko
-                            double y = (temp2[i].Y + temp2[i + 1].Y) / 2;
+                            float x = (temp2[i].X + temp2[i + 1].X) / 2; // izracunamo vmesno tocko
+                            float y = (temp2[i].Y + temp2[i + 1].Y) / 2;
                             temp1.Add(new Tocka(x, y)); // si jo shranimo
                             stevilo_tock--; // zmansamo stevilo tock
                         }
@@ -292,21 +302,27 @@ namespace UI_3
                     stevilo_tock = temp1.Count();
                 }
             }
+            // preverimo koliko tock je prevec ce jih je kaj
             int prevec;
             int odstranit;
-            if (na_vrsti_temp1) { 
-                prevec = temp1.Count() - (stevilo_vektorjev-2);
+            if (na_vrsti_temp1) {
+                prevec = temp1.Count() - (stevilo_vektorjev - 2);
+                if (prevec != 0) { 
                 odstranit = temp1.Count() / prevec;
-                for (int i = odstranit-1; i < temp1.Count(); i = i + odstranit) {
+                for (int i = odstranit - 1; i < temp1.Count(); i = i + odstranit) {
                     temp1.RemoveAt(i);
                 }
             }
+            }
             else { 
                 prevec = temp2.Count() - (stevilo_vektorjev-2);
-                odstranit = temp2.Count() / prevec;
-                for (int i = odstranit-1; i < temp2.Count(); i = i + odstranit)
+                if (prevec != 0)
                 {
-                    temp2.RemoveAt(i);
+                    odstranit = temp2.Count() / prevec;
+                    for (int i = odstranit - 1; i < temp2.Count(); i = i + odstranit)
+                    {
+                        temp2.RemoveAt(i);
+                    }
                 }
             }
             
@@ -332,13 +348,17 @@ namespace UI_3
                 }
             }
             vektor_2.Add(zadna); // dodamo na zadno mesto
+
+            // narisemo tocke
             Brush aBrush = (Brush)Brushes.Red; // za risanje tock
             for (int i = 0; i < vektor_2.Count(); i++)
             {
                 g.FillRectangle(aBrush, (int)vektor_2[i].X, (int)vektor_2[i].Y, 4, 4); // narisemo tocko
             }
-            temp1.Clear();
-            temp2.Clear();
+            temp1.Clear(); // pocistimo temp1
+            temp2.Clear(); // pocistimo temp2
+            /// da jih lahko naslednic ponovno uporabimo
+            /// 
             //MessageBox.Show("Vektor2 size: " + vektor_2.Count());
 
         }
@@ -350,21 +370,97 @@ namespace UI_3
             }
         }
 
+
         private void button2_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Sedaj bom začel z učenjem!");
-            tester(); /// to zaj dela zaj pa se mores ugotovit kak spravit noter vektorje
+
+            if (poteka_ucenje)
+            {
+                // torej jih se bomo dali skozi mrezo
+                MessageBox.Show("Sedaj bom začel z učenjem!");
+                //tester(); /// to zaj dela zaj pa se mores ugotovit kak spravit noter vektorje
+                //NeuralNetwork mreza = new NeuralNetwork(new int[] { stevilo_vektorjev * 2, stevilo_nevronov, 10 });
+                //for (int z = 0; z < 100; z++)
+                //{
+                    for (int i = 0; i < znaki.Count(); i++)
+                    {
+                        float[] temp = new float[znaki[i].tocke_znaka.Count() * 2]; // temp ki ga bomo posilali v mrezo, mora biti 2* koliko tock je (X in Y)
+                        int st = 0;
+                        //MessageBox.Show("Znak: " + znaki[i].oznaka + " st tock: " + znaki[i].tocke_znaka.Count());
+                        for (int j = 0; j < znaki[i].tocke_znaka.Count(); j++)
+                        {
+                            temp[st] = znaki[i].tocke_znaka[j].X; // kopiramo X
+                            temp[st + 1] = znaki[i].tocke_znaka[j].Y; // kopiramo Y
+                            st += 2;
+                        }
+                        if (temp.Length != stevilo_vektorjev * 2)
+                        {
+                            //MessageBox.Show("Skipam " + temp.Length + " " + znaki[i].oznaka);
+                        }
+                        else
+                        {
+                            int numVal = Int32.Parse(znaki[i].oznaka); // si oznako damo v int
+                                                                       //MessageBox.Show("Naprej poslal: " + numVal + " st_tock: " + temp.Length + " dovoljeno: " + stevilo_vektorjev * 2);
+                            mreza.FeedForward(temp);
+                            float[] nekaj = new float[10];
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (numVal == j)
+                                {
+                                    nekaj[j] = 1; // na tistem mestu ko je oznaka damo na 1
+                                }
+                                else
+                                {
+                                    nekaj[j] = 0; // ostale damo na 0
+                                }
+                            }
+
+                            mreza.Backprop(nekaj); // in pa vrnemo pricakovan izhod da se uredijo utezi
+                        }
+                    }
+
+                //}
+                MessageBox.Show("Koncal s ucenjem!");
+            }
+            else {
+                // smo pripravljeni na ugotavljanje
+                float[] temp = new float[znaki[znaki.Count() - 1].tocke_znaka.Count() * 2]; // damo koliko tock bomo poslali not
+                int st = 0;
+                for (int i = 0; i < znaki[znaki.Count() - 1].tocke_znaka.Count(); i++) {
+                    // prekopiramo tocke
+                    temp[st] = znaki[znaki.Count() - 1].tocke_znaka[i].X;
+                    st++;
+                    temp[st] = znaki[znaki.Count() - 1].tocke_znaka[i].Y;
+                    st++;
+                }
+                //int numVal = Int32.Parse(znaki[znaki.Count() - 1].oznaka);
+                //MessageBox.Show("Temp: " + temp.Length + " st_tock: " + znaki[znaki.Count() - 1].tocke_znaka.Count());
+                //MessageBox.Show("Output: " + mreza.FeedForward(temp)[0] + " znak: " + znaki[znaki.Count() - 1].oznaka);
+                float max = -999;
+                float value;
+                int index = 0;
+                for (int i = 0; i < mreza.FeedForward(temp).Length; i++) {
+                    value = mreza.FeedForward(temp)[i];
+                    //MessageBox.Show("Output: " + value + " znak: " + znaki[znaki.Count() - 1].oznaka);
+                    if (value > max) { max = value;  index = i; } // si shranimo index max value
+                }
+                MessageBox.Show("Zmagal index: " + index); // to bi morala biti nasa resitev oz oznaka
+            }
+
         }
 
         public void tester()
         {
-            NeuralNetwork net = new NeuralNetwork(new int[] { 3, 25, 25, 1 });
+            // test za mrezo ce deluje
+            // na primeru xor 
+            // DELUJE
+            NeuralNetwork net = new NeuralNetwork(new int[] { 3, 25, 25, 1 }); // nastavimo mrezo
 
             for (int i = 0; i < 5000; i++)
             {
 
-                net.FeedForward(new float[] { 0, 0, 0 });
-                net.Backprop(new float[] { 0 });
+                net.FeedForward(new float[] { 0, 0, 0 }); // poslemo not array
+                net.Backprop(new float[] { 0 }); // poslemo pricakovan izhod
 
                 net.FeedForward(new float[] { 0, 0, 1 });
                 net.Backprop(new float[] { 1 });
@@ -388,7 +484,7 @@ namespace UI_3
                 net.Backprop(new float[] { 1 });
             }
 
-            MessageBox.Show("Output(0): " + net.FeedForward(new float[] { 0, 0, 0 })[0]);
+            MessageBox.Show("Output(0): " + net.FeedForward(new float[] { 0, 0, 0 })[0]); // tu stestiramo ce prav napise
             MessageBox.Show("Output(1): " + net.FeedForward(new float[] { 0, 0, 1 })[0]);
             MessageBox.Show("Output(1): " + net.FeedForward(new float[] { 1, 1, 1 })[0]);
             MessageBox.Show("Output(0): " + net.FeedForward(new float[] { 0, 1, 1 })[0]);
@@ -398,14 +494,15 @@ namespace UI_3
 
     public class Tocka // moj class za tocko
     {
-        public double X, Y;
-        public Tocka(double x, double y)
+        public float X, Y;
+        public Tocka(float x, float y)
         {
             this.X = x;
             this.Y = y;
         }
     }
 
+    // za okno da vpisem not kateri znak sem narisal
     public static class Prompt
     {
         public static string ShowDialog(string text, string caption = "")
@@ -432,8 +529,8 @@ namespace UI_3
     }
 
     public class Znak {
-        public string oznaka;
-        public List<Tocka> tocke_znaka = new List<Tocka>();
+        public string oznaka; // oznaka znaka kaj smo narisali
+        public List<Tocka> tocke_znaka = new List<Tocka>(); // shranimo tocke
         public Znak(string x, List<Tocka> y)
         {
             this.oznaka = x;
@@ -450,8 +547,8 @@ namespace UI_3
 
     public class NeuralNetwork
     {
-        int[] layer;
-        Layer[] layers;
+        int[] layer; // da lahko imamo koliko zelimo veliko mrezo oz koliko zelimo layer
+        Layer[] layers; // dejanska mreza
         public NeuralNetwork(int[] layer)
         {
             this.layer = new int[layer.Length];
@@ -464,33 +561,33 @@ namespace UI_3
             for (int i = 0; i < layers.Length; i++)
             {
 
-                layers[i] = new Layer(layer[i], layer[i + 1]);
+                layers[i] = new Layer(layer[i], layer[i + 1]); // damo not stevilo vhodov in izhodov
             }
         }
 
         public float[] FeedForward(float[] vhod)
         {
-            layers[0].feedForward(vhod);
+            layers[0].feedForward(vhod); // v prvi layer damo nas input to so tocke
             for (int i = 1; i < layers.Length; i++)
             {
-                layers[i].feedForward(layers[i - 1].izhodi);
+                layers[i].feedForward(layers[i - 1].izhodi); // potem dajemo naprej izhode od prejsnih
             }
-            return layers[layers.Length - 1].izhodi;
+            return layers[layers.Length - 1].izhodi; // vrnemoi koncni izhod
         }
 
         public void Backprop(float[] pricakovano) {
             for (int i = layers.Length - 1; i >= 0; i--) {
                 if (i == layers.Length - 1)
                 {
-                    layers[i].BackpropOutput(pricakovano);
+                    layers[i].BackpropOutput(pricakovano); // smo na zadnem layer oz output layer in mu damo noter samo to kar smo pricakovali
                 }
                 else {
-                    layers[i].BackpropHidden(layers[i+1].gama, layers[i+1].utezi);
+                    layers[i].BackpropHidden(layers[i+1].gama, layers[i+1].utezi); // za ostale vmesne layere
                 }
             }
 
             for (int i = 0; i < layers.Length; i++) {
-                layers[i].PosodobiUtezi();
+                layers[i].PosodobiUtezi(); // gremo skozi vse layere in posodobimo utezi
             }
         }
 
@@ -500,14 +597,14 @@ namespace UI_3
             int st_vhodov; // koliko nevronov v prejsni layer
             int st_izhodov; // koliko je nevronov v tem layer
 
-            public float[] izhodi;
-            public float[] vhodi;
-            public float[,] utezi;
-            public float[,] uteziDelta;
+            public float[] izhodi; // izhod ki ga da nevron
+            public float[] vhodi; // vhod ki ga prejme
+            public float[,] utezi; // utezi
+            public float[,] uteziDelta; // kako bomo posodobili utezi
             public float[] gama;
-            public float[] napaka;
+            public float[] napaka; // za koliko smo se zmotili
             public static Random rand = new Random();
-            public float stopnja_ucenja = 0.25f;
+            public float stopnja_ucenja = 0.25f; // stopnja ucenja
 
             public Layer(int vhod, int izhod)
             {
@@ -532,10 +629,10 @@ namespace UI_3
                     izhodi[i] = 0;
                     for (int j = 0; j < st_vhodov; j++)
                     {
-                        izhodi[i] += vhodi[j] * utezi[i, j];
+                        izhodi[i] += vhodi[j] * utezi[i, j]; // na izhod poslemo vhode pomnozene s utezmi in sestete
                     }
-                    izhodi[i] = (float)Math.Tanh(izhodi[i]);
-                }
+                    izhodi[i] = (float)Math.Tanh(izhodi[i]); // Hyperbolic tangent
+            }
 
                 return izhodi;
             }
@@ -557,7 +654,7 @@ namespace UI_3
                 for(int i=0; i < st_izhodov; i++)
                 {
                     for (int j = 0; j < st_vhodov; j++) {
-                        utezi[i, j] -= uteziDelta[i, j] * stopnja_ucenja;
+                        utezi[i, j] -= uteziDelta[i, j] * stopnja_ucenja; // posodobimo utezi da jim odstejemo delto pomnozeno s st_ucenja
                     }
                 }
             }
@@ -567,17 +664,17 @@ namespace UI_3
             /// backprop za output layer to so zadnje layer
             for(int i=0; i < st_izhodov; i++)
             {
-                napaka[i] = izhodi[i] - pricakovano[i];
+                napaka[i] = izhodi[i] - pricakovano[i]; // od izhoda odstejemo pricakovano
             }
 
             for (int i = 0; i < st_izhodov; i++) {
-                gama[i] = napaka[i] * TahnDer(izhodi[i]);
+                gama[i] = napaka[i] * TahnDer(izhodi[i]); // dobimo gamo za izracunanje delte
             }
 
             for (int i = 0; i < st_izhodov; i++) { 
                 for(int j=0; j < st_vhodov; j++)
                 {
-                    uteziDelta[i, j] = gama[i] * vhodi[j];
+                    uteziDelta[i, j] = gama[i] * vhodi[j]; // izracunamo delto
 
                 }
             }
@@ -585,7 +682,7 @@ namespace UI_3
 
         public float TahnDer(float value)
         {
-            return 1 - (value * value);
+            return 1 - (value * value); // 1/x2
         }
 
         public void BackpropHidden(float[] gamaForward, float[,]forward) {
@@ -594,7 +691,7 @@ namespace UI_3
             {
                 gama[i] = 0;
                 for (int j = 0; j < gamaForward.Length; j++) {
-                    gama[i] += gamaForward[j] * forward[j, i];
+                    gama[i] += gamaForward[j] * forward[j, i]; // gami pristejemo gamo ki smo jo dobili pomnozeno z vrednostjo za naprej
                 }
                 gama[i] *= TahnDer(izhodi[i]);
             }
@@ -610,46 +707,4 @@ namespace UI_3
          
     }
 
-
-    /*
-    public class Nevron {
-        public double vrednost;
-        double utezi;
-        
-        public Nevron(double v) {
-            this.vrednost = v;
-            rand_utez();
-        }
-
-        public void rand_utez() {
-            var rnd = new Random();
-            this.utezi = rnd.NextDouble();
-        }
-
-        public aktivacijska() { 
-            
-        }
-    }
-
-    public class Mreza {
-        double stopnja_ucenja;
-        double napaka;
-        int stevilo_vektorjev;
-        int stevilo_nevronov;
-        List<Nevron> nevroni = new List<Nevron>();
-        double utez;
-
-        public Mreza(int st_v, int st_n, double u, double n) {
-            this.stevilo_vektorjev = st_v;
-            this.stevilo_nevronov = st_n;
-            this.stopnja_ucenja = u;
-            this.napaka = n;
-        }
-
-
-        public void rand_utezi() { 
-            
-        }
-    }
-    */
 }
